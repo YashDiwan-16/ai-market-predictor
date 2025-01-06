@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-
+import SuccessCard from "./SuccessCard";
 const words = `Let's Connect and Create Something Amazing Together!`;
 
 const schema = z.object({
@@ -75,40 +75,6 @@ const Contact: React.FC = () => {
       setIsLoading(false);
     }
   };
-
-  const SuccessCard = () => (
-    <div className="p-8 text-center">
-      <div className="w-24 h-24 mx-auto mb-4">
-        <svg
-          className="w-full h-full text-green-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          >
-            <animate
-              attributeName="stroke-dasharray"
-              from="0 100"
-              to="100 100"
-              dur="1s"
-              fill="freeze"
-            />
-          </path>
-        </svg>
-      </div>
-      <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
-        Message Sent Successfully!
-      </h3>
-      <p className="text-gray-600 dark:text-gray-400">
-        Thank you for reaching out. We'll get back to you soon!
-      </p>
-    </div>
-  );
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 sm:px-6 py-8">
