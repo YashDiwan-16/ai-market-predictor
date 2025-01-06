@@ -8,9 +8,6 @@ import {
 } from "@/components/ui/accordion";
 import { Lightbulb, Rocket, Target } from "lucide-react";
 import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
-import { motion } from "framer-motion";
-import Ripple from "@/components/ui/ripple";
-import { SparklesCore } from "@/components/ui/sparkles";
 
 const testimonials = [
   {
@@ -112,12 +109,14 @@ export default function LetterPullupDemo() {
           </Accordion>
         </div>
       </div>
-      <div className="mt-20">
-        <h3 className="text-3xl font-medium text-gray-200 text-center my-6">
+      <div className="mt-20 px-4 sm:px-8 lg:px-16">
+        <h3 className="text-2xl sm:text-3xl font-medium text-gray-800 dark:text-gray-200 text-center my-6">
           Meet Our Team
         </h3>
 
-        <AnimatedTestimonials testimonials={testimonials} />
+        <div className="max-w-5xl mx-auto">
+          <AnimatedTestimonials testimonials={testimonials} />
+        </div>
       </div>
     </div>
   );
