@@ -10,7 +10,7 @@ import Image from "next/image";
 
 const routes = [
   { href: "/", label: "Home" },
-  { href: "/tasks", label: "Tasks" },
+  { href: "/invest", label: "Invest" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
