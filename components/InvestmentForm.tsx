@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -14,126 +17,255 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { toast } from "@/hooks/use-toast";
+import { MultiSelect } from "@/components/multi-select";
+
+const companies = [
+  { label: "Reliance Industries", value: "RELIANCE" },
+  { label: "TCS", value: "TCS" },
+  { label: "HDFC Bank", value: "HDFCBANK" },
+  { label: "Infosys", value: "INFY" },
+  { label: "ICICI Bank", value: "ICICIBANK" },
+];
+
+const formSchema = z
+  .object({
+    amount: z.string().min(1, "Amount is required"),
+    investmentType: z.string().min(1, "Investment type is required"),
+    basketOrder: z.boolean(),
+    riskPreference: z.number(),
+    duration: z.string().min(1, "Duration is required"),
+    // Conditional basket fields
+    basketName: z.string().optional(),
+    basketLimit: z.number().optional(),
+    companies: z.array(z.string()).optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.basketOrder) {
+        return data.basketName && data.basketLimit && data.companies?.length;
+      }
+      return true;
+    },
+    {
+      message: "Basket details are required when basket order is enabled",
+    }
+  );
 
 export function InvestmentForm() {
-  const [formData, setFormData] = useState({
-    amount: "",
-    investmentType: "",
-    basketOrder: false,
-    riskPreference: 50,
-    duration: "",
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      amount: "",
+      investmentType: "",
+      basketOrder: false,
+      riskPreference: 50,
+      duration: "",
+      basketName: "",
+      basketLimit: 0,
+      companies: [], // ensure it's initialized as an empty array
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Implement form submission logic
+  const [basketOrder, setBasketOrder] = useState(false);
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log(values);
+    toast({
+      title: "Success",
+      description: "Investment submitted successfully",
+    });
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.2 }}
-    >
-      <Card className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-8">
+    <Card className="p-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Investment Amount */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Investment Amount</label>
-              <Input
-                type="number"
-                min="0"
-                placeholder="Enter amount"
-                value={formData.amount}
-                onChange={(e) =>
-                  setFormData({ ...formData, amount: e.target.value })
-                }
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Investment Amount</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Enter amount"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            {/* Investment Type */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Investment Type</label>
-              <Select
-                onValueChange={(value) =>
-                  setFormData({ ...formData, investmentType: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="one-time">One-Time Investment</SelectItem>
-                  <SelectItem value="sip">SIP</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <FormField
+              control={form.control}
+              name="investmentType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Investment Type</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="one-time">
+                        One-Time Investment
+                      </SelectItem>
+                      <SelectItem value="sip">SIP</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            {/* Basket Order */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Enable Basket Order</label>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={formData.basketOrder}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, basketOrder: checked })
-                  }
-                />
-                <span className="text-sm text-muted-foreground">
-                  {formData.basketOrder ? "Enabled" : "Disabled"}
-                </span>
-              </div>
-            </div>
-
-            {/* Risk Preference */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Risk Preference</label>
-              <Slider
-                value={[formData.riskPreference]}
-                onValueChange={([value]) =>
-                  setFormData({ ...formData, riskPreference: value })
-                }
-                max={100}
-                step={1}
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Low Risk</span>
-                <span>High Risk</span>
-              </div>
-            </div>
-
-            {/* Duration */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Investment Duration</label>
-              <Select
-                onValueChange={(value) =>
-                  setFormData({ ...formData, duration: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="short">Short Term</SelectItem>
-                  <SelectItem value="mid">Mid Term</SelectItem>
-                  <SelectItem value="long">Long Term</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <FormField
+              control={form.control}
+              name="basketOrder"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Basket Order</FormLabel>
+                    <div className="text-sm text-muted-foreground">
+                      Enable to create a custom basket
+                    </div>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        setBasketOrder(checked);
+                      }}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
           </div>
 
-          {/* Submit Button */}
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button
-              type="submit"
-              className="w-full bg-primary hover:bg-primary/90"
+          {basketOrder && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-6"
             >
-              Submit Investment
-            </Button>
-          </motion.div>
+              <FormField
+                control={form.control}
+                name="basketName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Basket Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter basket name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="companies"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Select Companies</FormLabel>
+                    <FormControl>
+                      <MultiSelect
+                        options={companies}
+                        placeholder="Select companies..."
+                        defaultValue={field.value}
+                        onValueChange={(values) => {
+                          field.onChange(values);
+                        }}
+                        maxCount={3}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </motion.div>
+          )}
+
+          {/* Existing risk preference and duration fields */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="riskPreference"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Risk Preference</FormLabel>
+                  <FormControl>
+                    <Slider
+                      value={[field.value]}
+                      onValueChange={([value]) => field.onChange(value)}
+                      max={100}
+                      step={1}
+                    />
+                  </FormControl>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Low Risk</span>
+                    <span>High Risk</span>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="duration"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Investment Duration</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select duration" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="short">Short Term</SelectItem>
+                      <SelectItem value="mid">Mid Term</SelectItem>
+                      <SelectItem value="long">Long Term</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <Button type="submit" className="w-full">
+            Submit Investment
+          </Button>
         </form>
-      </Card>
-    </motion.div>
+      </Form>
+    </Card>
   );
 }
