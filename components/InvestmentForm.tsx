@@ -1,9 +1,8 @@
 "use client";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import {
   Select,
@@ -17,16 +16,6 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Form,
   FormControl,
@@ -168,48 +157,93 @@ export function InvestmentForm() {
           </div>
 
           {basketOrder && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-6"
-            >
-              <FormField
-                control={form.control}
-                name="basketName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Basket Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter basket name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <AnimatePresence initial={false}>
+              <motion.div
+                key="basket-form"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{
+                  opacity: 1,
+                  height: "auto",
+                  transition: {
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 15,
+                    mass: 1,
+                    height: {
+                      duration: 0.4,
+                      ease: [0.4, 0, 0.2, 1],
+                    },
+                    opacity: { duration: 0.25, ease: "easeInOut" },
+                  },
+                }}
+                exit={{
+                  opacity: 0,
+                  height: 0,
+                  transition: {
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 15,
+                    mass: 1,
+                    height: {
+                      duration: 0.4,
+                      ease: [0.4, 0, 0.2, 1],
+                    },
+                    opacity: { duration: 0.25, ease: "easeInOut" },
+                  },
+                }}
+                className="space-y-6 overflow-hidden"
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    transition: { delay: 0.1, duration: 0.3 },
+                  }}
+                  exit={{
+                    opacity: 0,
+                    y: 20,
+                    transition: { duration: 0.2 },
+                  }}
+                >
+                  <FormField
+                    control={form.control}
+                    name="basketName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Basket Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter basket name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={form.control}
-                name="companies"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Select Companies</FormLabel>
-                    <FormControl>
-                      <MultiSelect
-                        options={companies}
-                        placeholder="Select companies..."
-                        defaultValue={field.value}
-                        onValueChange={(values) => {
-                          field.onChange(values);
-                        }}
-                        maxCount={3}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </motion.div>
+                  <FormField
+                    control={form.control}
+                    name="companies"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Select Companies</FormLabel>
+                        <FormControl>
+                          <MultiSelect
+                            options={companies}
+                            placeholder="Select companies..."
+                            defaultValue={field.value}
+                            onValueChange={(values) => {
+                              field.onChange(values);
+                            }}
+                            maxCount={3}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
+              </motion.div>
+            </AnimatePresence>
           )}
 
           {/* Existing risk preference and duration fields */}
